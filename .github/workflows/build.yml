@@ -13,11 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Set up Docker and resolve package conflicts
+      # Step 2: Set up Docker
       - name: Set up Docker
         run: |
           sudo apt-get update
-          sudo apt-get remove -y containerd  # Remove conflicting package
           sudo apt-get install -y docker.io
           sudo systemctl start docker
 
@@ -26,13 +25,12 @@ jobs:
         run: |
           docker pull ubuntu:22.04  # Use Ubuntu 22.04 image
 
-      # Step 4: Fix Package Issues and Install Dependencies
-      - name: Fix Package Issues
+      # Step 4: Install Dependencies as Root
+      - name: Install Dependencies
         run: |
           docker run --rm \
             -v ${PWD}:/project \
             -w /project \
-            --user $(id -u):$(id -g) \
             ubuntu:22.04 bash -c " \
             apt-get update && \
             apt-get -f install -y && \  # Repair broken installations
@@ -44,36 +42,13 @@ jobs:
             apt-get update && \
             apt-get install -y python3.10 python3.10-venv openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libffi-dev libssl-dev build-essential git unzip wget"
 
-      # Step 5: Show Held Packages (Optional)
-      - name: Show Held Packages
-        run: |
-          docker run --rm \
-            -v ${PWD}:/project \
-            -w /project \
-            --user $(id -u):$(id -g) \
-            ubuntu:22.04 bash -c " \
-            apt-get update && \
-            apt-mark showhold"  # Display held packages
-
-      # Step 6: Unhold Packages if Necessary (Optional)
-      - name: Unhold Packages
-        if: failure()  # Run only if previous step fails
-        run: |
-          docker run --rm \
-            -v ${PWD}:/project \
-            -w /project \
-            --user $(id -u):$(id -g) \
-            ubuntu:22.04 bash -c " \
-            apt-get update && \
-            apt-mark unhold containerd.io docker.io"  # Unhold conflicting packages
-
-      # Step 7: Build APK using Docker
+      # Step 5: Build APK using Docker (Run as Non-Root User)
       - name: Build APK using Docker
         run: |
           docker run --rm \
             -v ${PWD}:/project \
             -w /project \
-            --user $(id -u):$(id -g) \
+            --user $(id -u):$(id -g) \  # Run as non-root user
             ubuntu:22.04 bash -c " \
             python3.10 -m venv env && \
             source env/bin/activate && \
@@ -82,7 +57,7 @@ jobs:
             if [ ! -f buildozer.spec ]; then buildozer init --profile=android; fi && \
             buildozer --noinput android debug"
 
-      # Step 8: Upload APK
+      # Step 6: Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
