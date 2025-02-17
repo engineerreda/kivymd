@@ -47,7 +47,7 @@ jobs:
 
           # Set working directory
           WORKDIR /project
-EOF
+
 
       # Step 4: Run Docker Container
       - name: Run Docker Container
