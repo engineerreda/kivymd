@@ -50,10 +50,10 @@ jobs:
             pip install buildozer cython kivy && \
 
             # Initialize buildozer.spec if missing
-            if [ ! -f buildozer.spec ]; then buildozer init; fi && \
+            if [ ! -f buildozer.spec ]; then buildozer init --profile=android; fi && \
 
-            # Build the APK
-            buildozer android debug"
+            # Build the APK with --noinput flag
+            buildozer --noinput android debug"
 
       # Step 5: Upload APK
       - name: Upload APK
