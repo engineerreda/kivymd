@@ -20,45 +20,39 @@ jobs:
           sudo apt-get install -y docker.io
           sudo systemctl start docker
 
-      # Step 3: Build Docker Image
-      - name: Build Docker Image
+      # Step 3: Pull official Ubuntu Docker Image
+      - name: Pull Ubuntu Docker Image
         run: |
-          docker build -t my-buildozer-image - <<EOF
-          FROM ubuntu:20.04
+          docker pull ubuntu:20.04
 
-          # Create a non-root user
-          RUN useradd -ms /bin/bash builder
-
-          # Switch to the non-root user
-          USER builder
-
-          # Install dependencies
-          RUN apt-get update && \
-              apt-get install -y software-properties-common && \
-              add-apt-repository ppa:deadsnakes/ppa && \
-              apt-get update && \
-              apt-get install -y python3.10 python3.10-venv openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libffi-dev libssl-dev build-essential git unzip wget
-
-          # Set up virtual environment
-          RUN python3.10 -m venv env && \
-              source env/bin/activate && \
-              python -m pip install --upgrade pip setuptools wheel && \
-              pip install buildozer cython kivy
-
-          # Set working directory
-          WORKDIR /project
-
-
-      # Step 4: Run Docker Container
-      - name: Run Docker Container
+      # Step 4: Build APK using Docker
+      - name: Build APK using Docker
         run: |
           docker run --rm \
-            -v "${PWD}:/project" \
+            -v ${PWD}:/project \
             -w /project \
-            --user "$(id -u):$(id -g)" \
-            my-buildozer-image bash -c " \
+            --user $(id -u):$(id -g) \  # Run as non-root user
+            ubuntu:20.04 bash -c " \
+            apt-get update && \
+            apt-get install -y software-properties-common && \
+            add-apt-repository ppa:deadsnakes/ppa && \
+            apt-get update && \
+            apt-get install -y python3.10 python3.10-venv openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libffi-dev libssl-dev build-essential git unzip wget && \
+
+            # Create a virtual environment
+            python3.10 -m venv env && \
             source env/bin/activate && \
+
+            # Upgrade pip inside the virtual environment
+            python -m pip install --upgrade pip setuptools wheel && \
+
+            # Install required Python packages
+            pip install buildozer cython kivy && \
+
+            # Initialize buildozer.spec if missing
             if [ ! -f buildozer.spec ]; then buildozer init --profile=android; fi && \
+
+            # Build the APK with --noinput flag
             buildozer --noinput android debug"
 
       # Step 5: Upload APK
