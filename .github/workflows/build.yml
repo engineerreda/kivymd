@@ -34,7 +34,8 @@ jobs:
            --user $(id -u):$(id -g) \
            ubuntu:22.04 bash -c " \
            apt-get update && \
-           apt-get -f install -y && \
+           apt-get install -y --fix-broken && \
+           apt-get dist-upgrade -y && \
            apt-get autoremove -y && \
            apt-get autoclean -y && \
            apt-get update && \
