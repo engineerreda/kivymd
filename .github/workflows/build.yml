@@ -20,28 +20,28 @@ jobs:
           sudo apt-get install -y docker.io
           sudo systemctl start docker
 
-      # Step 3: Pull alternative Buildozer Docker Image
-      - name: Pull Alternative Buildozer Docker Image
+      # Step 3: Pull official Ubuntu Docker Image
+      - name: Pull Ubuntu Docker Image
         run: |
-          docker pull osmose/android-build-box
+          docker pull ubuntu:20.04
 
-      # Step 4: Initialize buildozer.spec if missing
-      - name: Initialize buildozer.spec if missing
-        run: |
-          if [ ! -f "buildozer.spec" ]; then
-            echo "Creating a new buildozer.spec file..."
-            buildozer init
-          fi
-
-      # Step 5: Build APK using Docker
+      # Step 4: Build APK using Docker
       - name: Build APK using Docker
         run: |
           docker run --rm \
             -v ${PWD}:/project \
             -w /project \
-            osmose/android-build-box bash -c "pip install buildozer && buildozer android debug"
+            ubuntu:20.04 bash -c "
+            apt-get update && \
+            apt-get install -y software-properties-common && \
+            add-apt-repository ppa:deadsnakes/ppa && \
+            apt-get update && \
+            apt-get install -y python3.10 python3.10-venv python3-pip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libffi-dev libssl-dev build-essential git unzip wget && \
+            python3.10 -m pip install --upgrade pip setuptools wheel && \
+            pip install buildozer cython kivy && \
+            buildozer android debug"
 
-      # Step 6: Upload artifacts
+      # Step 5: Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
