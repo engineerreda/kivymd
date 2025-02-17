@@ -11,7 +11,7 @@ jobs:
     steps:
       # Step 1: Checkout the code
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3  # تحديث إلى الإصدار v3
 
       # Step 2: Get the current date for cache key
       - name: Get Date
@@ -22,14 +22,14 @@ jobs:
 
       # Step 3: Cache Buildozer global directory
       - name: Cache Buildozer global directory
-        uses: actions/cache@v2
+        uses: actions/cache@v3  # تحديث إلى الإصدار v3
         with:
           path: .buildozer_global
           key: buildozer-global-${{ hashFiles('buildozer.spec') }}
 
       # Step 4: Cache Buildozer project directory
       - name: Cache Buildozer project directory
-        uses: actions/cache@v2
+        uses: actions/cache@v3  # تحديث إلى الإصدار v3
         with:
           path: .buildozer
           key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ hashFiles('buildozer.spec') }}
@@ -44,7 +44,7 @@ jobs:
 
       # Step 6: Upload artifacts
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3  # تحديث إلى الإصدار v3
         with:
           name: package
           path: ${{ steps.buildozer.outputs.filename }}
