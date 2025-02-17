@@ -20,10 +20,10 @@ jobs:
           sudo apt-get install -y docker.io
           sudo systemctl start docker
 
-      # Step 3: Pull official Buildozer Docker image
-      - name: Pull Buildozer Docker Image
+      # Step 3: Pull alternative Buildozer Docker Image
+      - name: Pull Alternative Buildozer Docker Image
         run: |
-          docker pull kivy/buildozer
+          docker pull osmose/android-build-box
 
       # Step 4: Initialize buildozer.spec if missing
       - name: Initialize buildozer.spec if missing
@@ -39,10 +39,7 @@ jobs:
           docker run --rm \
             -v ${PWD}:/project \
             -w /project \
-            -e ANDROID_API=30 \
-            -e ANDROID_MINAPI=21 \
-            -e ANDROID_NDK_VERSION=25b \
-            kivy/buildozer android debug
+            osmose/android-build-box bash -c "pip install buildozer && buildozer android debug"
 
       # Step 6: Upload artifacts
       - name: Upload APK
