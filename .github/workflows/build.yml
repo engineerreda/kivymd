@@ -32,8 +32,7 @@ jobs:
             -v ${PWD}:/project \
             -w /project \
             --user $(id -u):$(id -g) \  # Run as non-root user
-            ubuntu:20.04 bash -c "
-            # Update package lists and install dependencies
+            ubuntu:20.04 bash -c " \
             apt-get update && \
             apt-get install -y software-properties-common && \
             add-apt-repository ppa:deadsnakes/ppa && \
