@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04  # لا حاجة لتغيير الإصدار إذا كنت تريد الاحتفاظ بـ Ubuntu 20.04
+    runs-on: ubuntu-20.04
 
     steps:
       # Step 1: Checkout the code
@@ -35,10 +35,10 @@ jobs:
             ubuntu:20.04 bash -c " \
             apt-get update && \
             apt-get -f install && \  # Repair broken installations
-            apt-get autoremove && \  # Remove unused packages
-            apt-get autoclean && \  # Clean up old packages
+            apt-get autoremove -y && \  # Remove unused packages
+            apt-get autoclean -y && \  # Clean up old packages
             apt-get install -y software-properties-common && \
-            add-apt-repository ppa:deadsnakes/ppa && \
+            add-apt-repository ppa:deadsnakes/ppa -y && \
             apt-get update && \
             apt-get install -y python3.10 python3.10-venv openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libffi-dev libssl-dev build-essential git unzip wget"
 
