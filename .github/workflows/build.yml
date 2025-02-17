@@ -38,7 +38,9 @@ jobs:
            apt-get dist-upgrade -y && \
            apt-get autoremove -y && \
            apt-get autoclean -y && \
+           apt-get remove -y containerd && \  # Remove conflicting containerd package
            apt-get update && \
+           apt-get install -y containerd.io && \  # Install the correct containerd.io package
            apt-get install -y software-properties-common && \
            add-apt-repository ppa:deadsnakes/ppa -y && \
            apt-get update && \
