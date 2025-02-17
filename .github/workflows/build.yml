@@ -32,13 +32,23 @@ jobs:
             -v ${PWD}:/project \
             -w /project \
             ubuntu:20.04 bash -c "
+            # Update package lists and install dependencies
             apt-get update && \
             apt-get install -y software-properties-common && \
             add-apt-repository ppa:deadsnakes/ppa && \
             apt-get update && \
             apt-get install -y python3.10 python3.10-venv python3-pip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libffi-dev libssl-dev build-essential git unzip wget && \
-            python3.10 -m pip install --upgrade pip setuptools wheel && \
-            pip install buildozer cython kivy && \
+
+            # Upgrade pip to the latest version
+            python3.10 -m pip install --upgrade pip && \
+
+            # Install required Python packages
+            python3.10 -m pip install buildozer cython kivy && \
+
+            # Initialize buildozer.spec if missing
+            if [ ! -f buildozer.spec ]; then buildozer init; fi && \
+
+            # Build the APK
             buildozer android debug"
 
       # Step 5: Upload APK
