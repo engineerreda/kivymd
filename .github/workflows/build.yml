@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04  # Update to Ubuntu 22.04
 
     steps:
       # Step 1: Checkout the code
@@ -23,29 +23,25 @@ jobs:
       # Step 3: Pull official Ubuntu Docker Image
       - name: Pull Ubuntu Docker Image
         run: |
-          docker pull ubuntu:22.04
+          docker pull ubuntu:22.04  # Use Ubuntu 22.04 image
 
       # Step 4: Fix Package Issues and Install Dependencies
       - name: Fix Package Issues
         run: |
-           docker run --rm \
-           -v ${PWD}:/project \
-           -w /project \
-           --user $(id -u):$(id -g) \
-           ubuntu:22.04 bash -c " \
-           apt-get update && \
-           apt-get install -y --fix-broken && \
-           apt-get dist-upgrade -y && \
-           apt-get autoremove -y && \
-           apt-get autoclean -y && \
-           apt-get remove -y containerd && \  # Remove conflicting containerd package
-           apt-get remove -y containerd.io && \  # Remove containerd.io if exists
-           apt-get update && \
-           apt-get install -y containerd.io && \  # Install the correct containerd.io package
-           apt-get install -y software-properties-common && \
-           add-apt-repository ppa:deadsnakes/ppa -y && \
-           apt-get update && \
-           apt-get install -y python3.10 python3.10-venv openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libffi-dev libssl-dev build-essential git unzip wget"
+          docker run --rm \
+            -v ${PWD}:/project \
+            -w /project \
+            --user $(id -u):$(id -g) \
+            ubuntu:22.04 bash -c " \
+            apt-get update && \
+            apt-get -f install -y && \  # Repair broken installations
+            apt-get autoremove -y && \  # Remove unused packages
+            apt-get autoclean -y && \  # Clean up old packages
+            apt-get update && \
+            apt-get install -y software-properties-common && \
+            add-apt-repository ppa:deadsnakes/ppa -y && \
+            apt-get update && \
+            apt-get install -y python3.10 python3.10-venv openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libffi-dev libssl-dev build-essential git unzip wget"
 
       # Step 5: Build APK using Docker
       - name: Build APK using Docker
@@ -59,6 +55,7 @@ jobs:
             source env/bin/activate && \
             python -m pip install --upgrade pip setuptools wheel && \
             pip install buildozer cython kivy && \
+            if [ ! -f buildozer.spec ]; then buildozer init --profile=android; fi && \
             buildozer --noinput android debug"
 
       # Step 6: Upload APK
