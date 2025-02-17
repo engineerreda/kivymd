@@ -11,40 +11,42 @@ jobs:
     steps:
       # Step 1: Checkout the code
       - name: Checkout code
-        uses: actions/checkout@v4  # تحديث إلى الإصدار v4
+        uses: actions/checkout@v4
 
-      # Step 2: Get the current date for cache key
-      - name: Get Date
-        id: get-date
+      # Step 2: Set up Docker
+      - name: Set up Docker
         run: |
-          echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
-        shell: bash
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+          sudo systemctl start docker
 
-      # Step 3: Cache Buildozer global directory
-      - name: Cache Buildozer global directory
-        uses: actions/cache@v4  # تحديث إلى الإصدار v4
-        with:
-          path: .buildozer_global
-          key: buildozer-global-${{ hashFiles('buildozer.spec') }}
+      # Step 3: Pull official Buildozer Docker image
+      - name: Pull Buildozer Docker Image
+        run: |
+          docker pull kivy/buildozer
 
-      # Step 4: Cache Buildozer project directory
-      - name: Cache Buildozer project directory
-        uses: actions/cache@v4  # تحديث إلى الإصدار v4
-        with:
-          path: .buildozer
-          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ hashFiles('buildozer.spec') }}
+      # Step 4: Initialize buildozer.spec if missing
+      - name: Initialize buildozer.spec if missing
+        run: |
+          if [ ! -f "buildozer.spec" ]; then
+            echo "Creating a new buildozer.spec file..."
+            buildozer init
+          fi
 
-      # Step 5: Build with Buildozer
-      - name: Build with Buildozer
-        id: buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        with:
-          command: android debug
-          buildozer_version: stable
+      # Step 5: Build APK using Docker
+      - name: Build APK using Docker
+        run: |
+          docker run --rm \
+            -v ${PWD}:/project \
+            -w /project \
+            -e ANDROID_API=30 \
+            -e ANDROID_MINAPI=21 \
+            -e ANDROID_NDK_VERSION=25b \
+            kivy/buildozer android debug
 
       # Step 6: Upload artifacts
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4  # تحديث إلى الإصدار v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: package
-          path: ${{ steps.buildozer.outputs.filename }}
+          path: bin/*.apk
